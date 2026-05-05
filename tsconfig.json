@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@kyc/api-common": ["api-common/src/public-api.ts"],
+      "@kyc/api-common/*": ["api-common/src/lib/*"],
+      "@kyc/auth": ["auth/src/public-api.ts"],
+      "@kyc/auth/*": ["auth/src/lib/*"],
+      "@kyc/layout": ["layout/src/public-api.ts"],
+      "@kyc/layout/*": ["layout/src/lib/*"],
+      "@kyc/shared": ["shared/src/public-api.ts"],
+      "@kyc/shared/*": ["shared/src/lib/*"],
+      "@app-core/*": ["../frontend/src/app/core/*"]
+    }
+  }
+}

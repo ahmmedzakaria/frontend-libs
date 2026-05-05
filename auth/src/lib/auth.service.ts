@@ -2,9 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap, BehaviorSubject, switchMap, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import {ApiService} from "@app-core/api/api.service";
-import {AuthResponse} from "@app-core/api/model/auth-response";
-import {ApiEndpoints} from "@app-core/api/api-endpoints";
+import {ActionTypes, ApiEndpoint, ApiService, AuthResponse} from "@kyc/api-common";
 import {jwtDecode} from "jwt-decode";
 import {LayoutService, SidebarMenuService} from "@kyc/layout";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -17,6 +15,12 @@ interface DecodedToken {
     exp: number;
     iat: number;
 }
+
+const AUTHENTICATE_ENDPOINT: ApiEndpoint = {
+    service: 'LOGIN',
+    apiPath: 'auth/authenticate',
+    actionType: ActionTypes.LOGIN,
+};
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -46,7 +50,7 @@ export class AuthService {
         localStorage.removeItem('privilegeCodes');
         localStorage.removeItem('sidebarMenus');
 
-        return this.apiService.post<AuthResponse | { data: AuthResponse }>(ApiEndpoints.KYC_LOGIN, { username, password })
+        return this.apiService.post<AuthResponse | { data: AuthResponse }>(AUTHENTICATE_ENDPOINT, { username, password })
             .pipe(
                 map(response => this.unwrapAuthResponse(response)),
                 switchMap(res => {

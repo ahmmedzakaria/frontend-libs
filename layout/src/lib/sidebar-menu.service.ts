@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { ApiService } from '@app-core/api/api.service';
-import { ApiEndpoints } from '@app-core/api/api-endpoints';
+import { ActionTypes, ApiEndpoint, ApiService } from '@kyc/api-common';
 
 export interface SidebarMenuItem {
     label: string;
@@ -21,13 +20,19 @@ interface WrappedApplicationContext {
     data?: ApplicationContext;
 }
 
+const PRIVILEGE_CONTEXT_ENDPOINT: ApiEndpoint = {
+    service: 'AUTH',
+    apiPath: 'auth/privilege/context',
+    actionType: ActionTypes.AUTH,
+};
+
 @Injectable({ providedIn: 'root' })
 export class SidebarMenuService {
     constructor(private apiService: ApiService) {}
 
     loadApplicationContext(): Observable<ApplicationContext> {
-        return this.apiService.post<ApplicationContext | WrappedApplicationContext>(ApiEndpoints.PRIVILEGE_CONTEXT, {}).pipe(
-            map(response => this.unwrapApplicationContext(response)),
+        return this.apiService.post<ApplicationContext | WrappedApplicationContext>(PRIVILEGE_CONTEXT_ENDPOINT, {}).pipe(
+            map((response: ApplicationContext | WrappedApplicationContext) => this.unwrapApplicationContext(response)),
             tap(context => {
                 localStorage.setItem('privilegeCodes', JSON.stringify(context?.privilegeCodes || []));
                 localStorage.setItem('sidebarMenus', JSON.stringify(context?.menus || []));
