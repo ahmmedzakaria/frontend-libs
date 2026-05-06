@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { ActionTypes, ApiEndpoint, ApiService } from '@kyc/api-common';
+import { ActionTypes, ApiEndpoint, ApiService } from '@nexacore/api-common';
 
 export interface SidebarMenuItem {
     label: string;

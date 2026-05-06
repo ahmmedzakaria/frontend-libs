@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import { Router } from '@angular/router';
 import {AuthService} from "../auth.service";
-import {LayoutService} from "@kyc/layout";
+import {LayoutService} from "@nexacore/layout";
 import {NgIf} from "@angular/common";
 
 

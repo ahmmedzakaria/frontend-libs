@@ -9,14 +9,14 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@kyc/api-common": ["api-common/src/public-api.ts"],
-      "@kyc/api-common/*": ["api-common/src/lib/*"],
-      "@kyc/auth": ["auth/src/public-api.ts"],
-      "@kyc/auth/*": ["auth/src/lib/*"],
-      "@kyc/layout": ["layout/src/public-api.ts"],
-      "@kyc/layout/*": ["layout/src/lib/*"],
-      "@kyc/shared": ["shared/src/public-api.ts"],
-      "@kyc/shared/*": ["shared/src/lib/*"],
+      "@nexacore/api-common": ["api-common/src/public-api.ts"],
+      "@nexacore/api-common/*": ["api-common/src/lib/*"],
+      "@nexacore/auth": ["auth/src/public-api.ts"],
+      "@nexacore/auth/*": ["auth/src/lib/*"],
+      "@nexacore/layout": ["layout/src/public-api.ts"],
+      "@nexacore/layout/*": ["layout/src/lib/*"],
+      "@nexacore/shared": ["shared/src/public-api.ts"],
+      "@nexacore/shared/*": ["shared/src/lib/*"],
       "@app-core/*": ["../frontend/src/app/core/*"]
     }
   }

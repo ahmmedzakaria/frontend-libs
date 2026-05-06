@@ -4,7 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { TopbarComponent } from '../topbar/topbar.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import {LayoutService} from "../layout.service";
-import {AuthService} from "@kyc/auth";
+import {AuthService} from "@nexacore/auth";
 
 
 @Component({

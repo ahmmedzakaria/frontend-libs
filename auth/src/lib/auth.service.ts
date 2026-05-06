@@ -2,9 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap, BehaviorSubject, switchMap, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import {ActionTypes, ApiEndpoint, ApiService, AuthResponse} from "@kyc/api-common";
+import {ActionTypes, ApiEndpoint, ApiService, AuthResponse} from "@nexacore/api-common";
 import {jwtDecode} from "jwt-decode";
-import {LayoutService, SidebarMenuService} from "@kyc/layout";
+import {LayoutService, SidebarMenuService} from "@nexacore/layout";
 import {ActivatedRoute, Router} from "@angular/router";
 
 

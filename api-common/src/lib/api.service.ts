@@ -52,10 +52,10 @@ export class ApiService {
     ): Observable<T> {
         if (body instanceof FormData) {
             if (!body.has('source')) {
-                body.append('source', 'KYC_APP');
+                body.append('source', 'NEXACORE_APP');
             }
         } else {
-            body.source = "KYC_APP";
+            body.source = "NEXACORE_APP";
         }
 
         const basePath = [ActionTypes.LOGIN, ActionTypes.AUTH].includes(apiInfo.actionType)
@@ -88,10 +88,10 @@ export class ApiService {
 
         if (body instanceof FormData) {
             if (!body.has('source')) {
-                body.append('source', 'KYC_APP');
+                body.append('source', 'NEXACORE_APP');
             }
         } else {
-            body.source = 'KYC_APP';
+            body.source = 'NEXACORE_APP';
         }
 
         const requestOptions = {

@@ -95,7 +95,7 @@ export class SmartDropdownComponent implements OnInit, ControlValueAccessor, Val
     private fetchData(term = '') {
         if (!this.apiUrl) return of([]);
         this.loading = true;
-        const body = { searchText: term, page: this.page, size: this.pageSize, source: 'KYC_APP' };
+        const body = { searchText: term, page: this.page, size: this.pageSize, source: 'NEXACORE_APP' };
         return this.http.post<any>(this.apiUrl, body).pipe(
             tap(res => {
                 const content = res?.content ?? res ?? [];
