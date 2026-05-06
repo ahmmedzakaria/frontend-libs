@@ -5,5 +5,6 @@ export * from './lib/interceptors/jwt.interceptor';
 export * from './lib/model/action-types';
 export * from './lib/model/api-response.model';
 export * from './lib/model/auth-response';
+export * from './lib/model/auth-config';
 export * from './lib/model/endpoint';
 export * from './lib/model/response-message.model';

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import { Router } from '@angular/router';
 import {AuthService} from "../auth.service";
@@ -16,9 +16,12 @@ import {NgIf} from "@angular/common";
     ],
 
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
     form: FormGroup;
     errorMessage = '';
+    authMode: 'LOCAL' | 'SSO' = 'LOCAL';
+    loadingConfig = true;
+    ssoLoading = false;
 
     constructor(
         private fb: FormBuilder,
@@ -32,8 +35,25 @@ export class LoginComponent {
         });
     }
 
+    ngOnInit(): void {
+        this.authService.loadAuthConfig().subscribe({
+            next: config => {
+                this.authMode = config.authMode;
+                this.loadingConfig = false;
+            },
+            error: err => {
+                this.errorMessage = err?.error || err?.message || 'Authentication config load failed';
+                this.loadingConfig = false;
+            }
+        });
+    }
+
     login() {
         if (this.form.invalid) return;
+        if (this.authMode === 'SSO') {
+            this.errorMessage = 'LOCAL_LOGIN_DISABLED';
+            return;
+        }
 
         const { username, password } = this.form.value;
 
@@ -44,7 +64,19 @@ export class LoginComponent {
                 this.router.navigate(['']);
             },
             error: err => {
-                this.errorMessage = err?.error || 'Login failed';
+                this.errorMessage = err?.error || err?.message || 'Login failed';
+            }
+        });
+    }
+
+    loginWithSso() {
+        this.ssoLoading = true;
+        this.errorMessage = '';
+
+        this.authService.loginWithSso().subscribe({
+            error: err => {
+                this.ssoLoading = false;
+                this.errorMessage = err?.error || err?.message || 'SSO login failed';
             }
         });
     }
