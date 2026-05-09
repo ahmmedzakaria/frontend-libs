@@ -32,11 +32,34 @@ export class SsoCallbackComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        if (!this.hasCallbackParams()) {
+            this.restartSso();
+            return;
+        }
+
         this.authService.handleSsoCallback().subscribe({
             next: () => {
                 this.layoutService.setAuthenticatedLayout();
-                this.router.navigate(['']);
+                this.router.navigateByUrl(this.authService.consumePostLoginUrl());
             },
+            error: err => {
+                const message = err?.error || err?.message || 'SSO login failed';
+                if (message === 'Invalid SSO callback') {
+                    this.restartSso();
+                    return;
+                }
+                this.errorMessage = message;
+            }
+        });
+    }
+
+    private hasCallbackParams(): boolean {
+        const params = new URLSearchParams(window.location.search);
+        return params.has('code') && params.has('state');
+    }
+
+    private restartSso(): void {
+        this.authService.loginWithSso('/').subscribe({
             error: err => {
                 this.errorMessage = err?.error || err?.message || 'SSO login failed';
             }

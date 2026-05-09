@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, switchMap, of, throwError, from, Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import {ActionTypes, ApiEndpoint, ApiService, AuthConfig, AuthResponse} from "@nexacore/api-common";
@@ -34,6 +34,21 @@ const AUTH_CONFIG_ENDPOINT: ApiEndpoint = {
     actionType: ActionTypes.LOGIN,
 };
 
+const LOGOUT_ENDPOINT: ApiEndpoint = {
+    service: 'LOGIN',
+    apiPath: 'auth/logout',
+    actionType: ActionTypes.LOGIN,
+};
+
+const SESSION_STATUS_ENDPOINT: ApiEndpoint = {
+    service: 'LOGIN',
+    apiPath: 'auth/session-status',
+    actionType: ActionTypes.LOGIN,
+};
+
+const AUTO_SSO_SUPPRESS_UNTIL_KEY = 'auto_sso_suppress_until';
+const AUTO_SSO_SUPPRESS_MS = 120000;
+
 interface KeycloakTokenResponse {
     access_token: string;
     refresh_token?: string;
@@ -45,6 +60,7 @@ export class AuthService {
     private currentUserSubject = new BehaviorSubject<DecodedToken | null>(null);
     currentUser$ = this.currentUserSubject.asObservable();
     private logoutTimerId: ReturnType<typeof setTimeout> | null = null;
+    private sessionMonitorTimerId: ReturnType<typeof setInterval> | null = null;
 
     constructor(private http: HttpClient,
                 private apiService: ApiService,
@@ -95,16 +111,19 @@ export class AuthService {
             .pipe(
                 map(response => this.unwrapAuthConfig(response)),
                 map(config => {
-                    localStorage.setItem('authMode', config.authMode);
-                    localStorage.setItem('authConfig', JSON.stringify(config));
-                    return config;
+                    const normalizedConfig = this.normalizeAuthConfig(config);
+                    localStorage.setItem('authMode', normalizedConfig.authMode);
+                    localStorage.setItem('authConfig', JSON.stringify(normalizedConfig));
+                    return normalizedConfig;
                 })
             );
     }
 
-    loginWithSso(): Observable<void> {
+    loginWithSso(returnUrl: string = window.location.pathname + window.location.search): Observable<void> {
         this.clearAuthStorage();
         localStorage.removeItem('keycloakIdToken');
+        sessionStorage.removeItem(AUTO_SSO_SUPPRESS_UNTIL_KEY);
+        sessionStorage.setItem('post_login_url', returnUrl || '/');
 
         return this.loadAuthConfig().pipe(
             switchMap(config => from(this.redirectToKeycloak(config)))
@@ -155,23 +174,50 @@ export class AuthService {
         );
     }
 
-    logout(redirectToLogin: boolean = true) {
+    logout(redirectToLogin: boolean = true, notifyServer: boolean = true) {
         const authMode = localStorage.getItem('authMode');
         const authConfig = this.getStoredAuthConfig();
         const keycloakIdToken = localStorage.getItem('keycloakIdToken');
 
+        if (notifyServer && this.getToken()) {
+            this.apiService.post<void>(LOGOUT_ENDPOINT, {}).subscribe({
+                next: () => this.completeLogout(redirectToLogin, authMode, authConfig, keycloakIdToken),
+                error: () => this.completeLogout(redirectToLogin, authMode, authConfig, keycloakIdToken)
+            });
+            return;
+        }
+
+        this.completeLogout(redirectToLogin, authMode, authConfig, keycloakIdToken);
+    }
+
+    private completeLogout(
+        redirectToLogin: boolean,
+        authMode: string | null,
+        authConfig: AuthConfig | null,
+        keycloakIdToken: string | null
+    ) {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('privilegeCodes');
         localStorage.removeItem('sidebarMenus');
         localStorage.removeItem('keycloakIdToken');
+        if (redirectToLogin && authMode === 'SSO') {
+            sessionStorage.setItem(
+                AUTO_SSO_SUPPRESS_UNTIL_KEY,
+                String(Date.now() + AUTO_SSO_SUPPRESS_MS)
+            );
+        }
         this.clearLogoutTimer();
+        this.clearSessionMonitor();
         this.currentUserSubject.next(null);
         this.layoutService.setPublicLayout();
 
         if (redirectToLogin && authMode === 'SSO' && authConfig?.issuerUri) {
             const logoutUrl = new URL(`${authConfig.issuerUri}/protocol/openid-connect/logout`);
             logoutUrl.searchParams.set('post_logout_redirect_uri', `${window.location.origin}/login`);
+            if (authConfig.clientId) {
+                logoutUrl.searchParams.set('client_id', authConfig.clientId);
+            }
             if (keycloakIdToken) {
                 logoutUrl.searchParams.set('id_token_hint', keycloakIdToken);
             }
@@ -194,9 +240,10 @@ export class AuthService {
             console.log('decoded',decoded)
             this.currentUserSubject.next(decoded);
             this.scheduleAutoLogout(decoded.exp);
+            this.startSessionMonitor();
         } catch (err) {
             console.error('JWT Decode failed', err);
-            this.logout();
+            this.logout(true, false);
         }
     }
 
@@ -207,7 +254,7 @@ export class AuthService {
         }
 
         if (this.isTokenExpired(token)) {
-            this.logout();
+            this.logout(true, false);
             return false;
         }
 
@@ -215,7 +262,23 @@ export class AuthService {
     }
 
     handleSessionExpired(): void {
-        this.logout();
+        this.logout(true, false);
+    }
+
+    isAutoSsoSuppressed(): boolean {
+        const suppressUntil = Number(sessionStorage.getItem(AUTO_SSO_SUPPRESS_UNTIL_KEY) || 0);
+        if (suppressUntil <= Date.now()) {
+            sessionStorage.removeItem(AUTO_SSO_SUPPRESS_UNTIL_KEY);
+            return false;
+        }
+
+        return true;
+    }
+
+    consumePostLoginUrl(): string {
+        const returnUrl = sessionStorage.getItem('post_login_url') || '/';
+        sessionStorage.removeItem('post_login_url');
+        return returnUrl;
     }
 
     hasRole(role: string): boolean {
@@ -246,7 +309,7 @@ export class AuthService {
         }
 
         this.logoutTimerId = setTimeout(() => {
-            this.logout();
+            this.logout(true, false);
         }, remainingMs);
     }
 
@@ -257,12 +320,55 @@ export class AuthService {
         }
     }
 
+    private startSessionMonitor(): void {
+        this.clearSessionMonitor();
+
+        this.sessionMonitorTimerId = setInterval(() => {
+            if (!this.getToken()) {
+                this.clearSessionMonitor();
+                return;
+            }
+
+            this.apiService.post<void>(SESSION_STATUS_ENDPOINT, {}, {
+                headers: new HttpHeaders({
+                    'Content-Type': 'application/json',
+                    'X-Silent': 'true'
+                })
+            }).subscribe({
+                error: () => this.logout(true, false)
+            });
+        }, 15000);
+    }
+
+    private clearSessionMonitor(): void {
+        if (this.sessionMonitorTimerId) {
+            clearInterval(this.sessionMonitorTimerId);
+            this.sessionMonitorTimerId = null;
+        }
+    }
+
     private unwrapAuthResponse(response: AuthResponse | { data: AuthResponse }): AuthResponse {
         return (response as { data: AuthResponse })?.data || response as AuthResponse;
     }
 
     private unwrapAuthConfig(response: AuthConfig | { data: AuthConfig }): AuthConfig {
         return (response as { data: AuthConfig })?.data || response as AuthConfig;
+    }
+
+    private normalizeAuthConfig(config: AuthConfig): AuthConfig {
+        return {
+            ...config,
+            clientId: this.resolveFrontendClientId(config),
+            redirectUri: `${window.location.origin}/sso/callback`
+        };
+    }
+
+    private resolveFrontendClientId(config: AuthConfig): string | undefined {
+        if (window.location.port === '4300') {
+            return 'privilege-frontend';
+        }
+
+        return config.clientId;
     }
 
     private async redirectToKeycloak(config: AuthConfig): Promise<void> {

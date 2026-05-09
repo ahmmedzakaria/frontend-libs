@@ -9,6 +9,7 @@ import {ResponseMessage} from "../model/response-message.model";
 
 export const apiResponseInterceptor: HttpInterceptorFn = (req, next) => {
     const snackBar = inject(MatSnackBar);
+    const silent = req.headers.get('X-Silent') === 'true';
 
     return next(req).pipe(
         map(event => {
@@ -17,10 +18,14 @@ export const apiResponseInterceptor: HttpInterceptorFn = (req, next) => {
                 if (body && body.status) {
                     console.log(body);
                     if (body.status === 'SUCCESS') {
-                        showMessages(body.message, snackBar);
+                        if (!silent) {
+                            showMessages(body.message, snackBar);
+                        }
                         return event.clone({ body: body.data });
                     } else {
-                        showMessages(body.message, snackBar);
+                        if (!silent) {
+                            showMessages(body.message, snackBar);
+                        }
                         throw new HttpErrorResponse({
                             status: body.statusCode,
                             error: body.message?.map(m => m.message).join(', ') || 'Unknown error'
