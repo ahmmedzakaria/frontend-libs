@@ -24,15 +24,15 @@ export class ApiService {
     /**
      * Build headers (Auth + JSON/multipart)
      */
-    private buildHeaders(isMultiPart: boolean = false): HttpHeaders {
+    private buildHeaders(isMultiPart: boolean = false, providedHeaders?: HttpHeaders): HttpHeaders {
         const token = this.getToken();
-        let headers = new HttpHeaders();
+        let headers = providedHeaders || new HttpHeaders();
 
-        if (token) {
+        if (token && !headers.has('Authorization')) {
             headers = headers.set('Authorization', `Bearer ${token}`);
         }
 
-        if (!isMultiPart) {
+        if (!isMultiPart && !headers.has('Content-Type')) {
             headers = headers.set('Content-Type', 'application/json');
         }
 
@@ -61,7 +61,7 @@ export class ApiService {
 
         const basePath = this.resolveBasePath(apiInfo.actionType);
 
-        const headers = options.headers || this.buildHeaders(apiInfo.isMultiPart);
+        const headers = this.buildHeaders(apiInfo.isMultiPart, options.headers);
         const requestOptions = {
             ...options,
             headers,
