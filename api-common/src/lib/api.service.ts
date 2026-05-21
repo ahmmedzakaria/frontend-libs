@@ -13,6 +13,7 @@ import { ApiEndpoint } from './model/endpoint';
 export class ApiService {
     private baseUrl = Environment.apiBaseUrl;
     private loginUrl = Environment.loginUrl;
+    private backendOrigin = Environment.backendOrigin;
 
     public getToken() {
         return localStorage.getItem('token');
@@ -58,9 +59,7 @@ export class ApiService {
             body.source = "NEXACORE_APP";
         }
 
-        const basePath = [ActionTypes.LOGIN, ActionTypes.AUTH].includes(apiInfo.actionType)
-            ? this.loginUrl
-            : this.baseUrl;
+        const basePath = this.resolveBasePath(apiInfo.actionType);
 
         const headers = options.headers || this.buildHeaders(apiInfo.isMultiPart);
         const requestOptions = {
@@ -71,6 +70,33 @@ export class ApiService {
         return this.http.post(`${basePath}/${apiInfo.apiPath}`, body, requestOptions).pipe(
             catchError(this.handleError)
         ) as Observable<T>;
+    }
+
+    private resolveBasePath(actionType: ActionTypes): string {
+        const configuredPath = [ActionTypes.LOGIN, ActionTypes.AUTH].includes(actionType)
+            ? this.loginUrl
+            : this.baseUrl;
+
+        if (this.shouldUseLocalBackendOrigin()) {
+            return this.joinUrl(this.backendOrigin, configuredPath);
+        }
+
+        return configuredPath;
+    }
+
+    private shouldUseLocalBackendOrigin(): boolean {
+        if (!this.backendOrigin || typeof window === 'undefined') {
+            return false;
+        }
+
+        return window.location.hostname === 'localhost'
+            && ['4200', '4300'].includes(window.location.port);
+    }
+
+    private joinUrl(origin: string, path: string): string {
+        const normalizedOrigin = origin.replace(/\/$/, '');
+        const normalizedPath = path ? `/${path.replace(/^\//, '')}` : '';
+        return `${normalizedOrigin}${normalizedPath}`;
     }
 
     fetchBinaryData(

@@ -73,7 +73,7 @@ export class LoginComponent implements OnInit {
         this.ssoLoading = true;
         this.errorMessage = '';
 
-        this.authService.loginWithSso().subscribe({
+        this.authService.loginWithSsoAfterLogout('/').subscribe({
             error: err => {
                 this.ssoLoading = false;
                 this.errorMessage = err?.error || err?.message || 'SSO login failed';

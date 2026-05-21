@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, switchMap, of, throwError, from, Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import {ActionTypes, ApiEndpoint, ApiService, AuthConfig, AuthResponse} from "@nexacore/api-common";
+import {ActionTypes, ApiEndpoint, ApiService, AuthConfig, AuthResponse, LoginStatusResponse} from "@nexacore/api-common";
 import {jwtDecode} from "jwt-decode";
 import {LayoutService, SidebarMenuService} from "@nexacore/layout";
 import {Router} from "@angular/router";
@@ -46,8 +46,15 @@ const SESSION_STATUS_ENDPOINT: ApiEndpoint = {
     actionType: ActionTypes.LOGIN,
 };
 
+const LOGIN_STATUS_ENDPOINT: ApiEndpoint = {
+    service: 'LOGIN',
+    apiPath: 'auth/login-status',
+    actionType: ActionTypes.LOGIN,
+};
+
 const AUTO_SSO_SUPPRESS_UNTIL_KEY = 'auto_sso_suppress_until';
 const AUTO_SSO_SUPPRESS_MS = 120000;
+const LAST_LOGOUT_USERNAME_KEY = 'last_logout_username';
 
 interface KeycloakTokenResponse {
     access_token: string;
@@ -119,14 +126,30 @@ export class AuthService {
             );
     }
 
-    loginWithSso(returnUrl: string = window.location.pathname + window.location.search): Observable<void> {
+    loginWithSso(
+        returnUrl: string = window.location.pathname + window.location.search,
+        forceLoginPrompt: boolean = false
+    ): Observable<void> {
         this.clearAuthStorage();
         localStorage.removeItem('keycloakIdToken');
         sessionStorage.removeItem(AUTO_SSO_SUPPRESS_UNTIL_KEY);
         sessionStorage.setItem('post_login_url', returnUrl || '/');
 
         return this.loadAuthConfig().pipe(
-            switchMap(config => from(this.redirectToKeycloak(config)))
+            switchMap(config => from(this.redirectToKeycloak(config, forceLoginPrompt)))
+        );
+    }
+
+    loginWithSsoAfterLogout(returnUrl: string = '/'): Observable<void> {
+        const username = sessionStorage.getItem(LAST_LOGOUT_USERNAME_KEY);
+
+        if (!username) {
+            return this.loginWithSso(returnUrl, true);
+        }
+
+        return this.isUserLoggedIn(username).pipe(
+            catchError(() => of(false)),
+            switchMap(loggedIn => this.loginWithSso(returnUrl, !loggedIn))
         );
     }
 
@@ -196,12 +219,16 @@ export class AuthService {
         authConfig: AuthConfig | null,
         keycloakIdToken: string | null
     ) {
+        const username = this.getCurrentUsername();
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('privilegeCodes');
         localStorage.removeItem('sidebarMenus');
         localStorage.removeItem('keycloakIdToken');
         if (redirectToLogin && authMode === 'SSO') {
+            if (username) {
+                sessionStorage.setItem(LAST_LOGOUT_USERNAME_KEY, username);
+            }
             sessionStorage.setItem(
                 AUTO_SSO_SUPPRESS_UNTIL_KEY,
                 String(Date.now() + AUTO_SSO_SUPPRESS_MS)
@@ -239,6 +266,7 @@ export class AuthService {
             const decoded: DecodedToken = jwtDecode(token);
             console.log('decoded',decoded)
             this.currentUserSubject.next(decoded);
+            sessionStorage.removeItem(LAST_LOGOUT_USERNAME_KEY);
             this.scheduleAutoLogout(decoded.exp);
             this.startSessionMonitor();
         } catch (err) {
@@ -371,7 +399,7 @@ export class AuthService {
         return config.clientId;
     }
 
-    private async redirectToKeycloak(config: AuthConfig): Promise<void> {
+    private async redirectToKeycloak(config: AuthConfig, forceLoginPrompt: boolean = false): Promise<void> {
         if (config.authMode !== 'SSO' || !config.issuerUri || !config.clientId || !config.redirectUri) {
             throw new Error('SSO is not configured');
         }
@@ -392,6 +420,9 @@ export class AuthService {
         authorizationUrl.searchParams.set('state', state);
         authorizationUrl.searchParams.set('code_challenge', challenge);
         authorizationUrl.searchParams.set('code_challenge_method', 'S256');
+        if (forceLoginPrompt) {
+            authorizationUrl.searchParams.set('prompt', 'login');
+        }
 
         window.location.href = authorizationUrl.toString();
     }
@@ -438,6 +469,32 @@ export class AuthService {
     private clearSsoSessionStorage(): void {
         sessionStorage.removeItem('kc_code_verifier');
         sessionStorage.removeItem('kc_state');
+    }
+
+    private isUserLoggedIn(username: string): Observable<boolean> {
+        return this.apiService.post<LoginStatusResponse | { data: LoginStatusResponse }>(
+            LOGIN_STATUS_ENDPOINT,
+            { username }
+        ).pipe(
+            map(response => ((response as { data: LoginStatusResponse })?.data || response as LoginStatusResponse).loggedIn)
+        );
+    }
+
+    private getCurrentUsername(): string | null {
+        if (this.currentUserSubject.value?.sub) {
+            return this.currentUserSubject.value.sub;
+        }
+
+        const token = this.getToken();
+        if (!token) {
+            return null;
+        }
+
+        try {
+            return jwtDecode<DecodedToken>(token).sub || null;
+        } catch {
+            return null;
+        }
     }
 
     private randomString(length: number): string {
