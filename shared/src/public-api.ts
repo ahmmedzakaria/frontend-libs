@@ -13,3 +13,5 @@ export * from './lib/components/smart-dropdown/smart-dropdown.component';
 export * from './lib/components/textarea/textarea.component';
 export * from './lib/components/textbox/textbox.component';
 export * from './lib/services/validation-message.service';
+export * from './lib/i18n/i18n.service';
+export * from './lib/i18n/translate.pipe';

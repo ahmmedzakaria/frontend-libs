@@ -28,6 +28,11 @@
     }
   }
 
+  .language-select {
+    width: auto;
+    min-width: 104px;
+  }
+
   .dropdown-menu {
     border-radius: 0.75rem;
     border: 1px solid var(--bs-border-color);

@@ -2,6 +2,7 @@ export * from './lib/api.service';
 export * from './lib/environment';
 export * from './lib/interceptors/api-response.interceptor';
 export * from './lib/interceptors/jwt.interceptor';
+export * from './lib/interceptors/language.interceptor';
 export * from './lib/model/action-types';
 export * from './lib/model/api-response.model';
 export * from './lib/model/auth-response';

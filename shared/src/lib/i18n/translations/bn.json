@@ -1,0 +1,20 @@
+{
+  "app.name": "নেক্সাকোর",
+  "language.english": "ইংরেজি",
+  "language.bangla": "বাংলা",
+  "common.success": "সফল",
+  "common.cancel": "বাতিল",
+  "common.close": "বন্ধ",
+  "common.save": "সংরক্ষণ",
+  "common.update": "আপডেট",
+  "common.delete": "মুছে ফেলুন",
+  "common.search": "অনুসন্ধান",
+  "common.loading": "লোড হচ্ছে",
+  "common.error.unexpected": "অপ্রত্যাশিত ত্রুটি ঘটেছে",
+  "common.error.validation": "ভ্যালিডেশন ব্যর্থ হয়েছে",
+  "common.error.not_found": "রিসোর্স পাওয়া যায়নি",
+  "common.error.method_not_allowed": "এই মেথড অনুমোদিত নয়",
+  "auth.profile": "প্রোফাইল",
+  "auth.settings": "সেটিংস",
+  "auth.logout": "লগআউট"
+}

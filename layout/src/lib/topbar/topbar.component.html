@@ -21,6 +21,17 @@
         <!-- Navbar Items -->
         <div class="collapse navbar-collapse" [class.show]="isMenuOpen" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item">
+                    <select
+                            class="form-select form-select-sm language-select"
+                            [value]="selectedLocale"
+                            (change)="changeLanguage($any($event.target).value)"
+                            aria-label="Language"
+                    >
+                        <option value="en">{{ 'language.english' | translate:'English' }}</option>
+                        <option value="bn">{{ 'language.bangla' | translate:'Bangla' }}</option>
+                    </select>
+                </li>
 
                 <!-- Theme Toggle -->
                 <li class="nav-item">
@@ -47,10 +58,10 @@
                     </a>
 
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                        <li><a class="dropdown-item" routerLink="/profile"><i class="fa fa-user me-2"></i>Profile</a></li>
-                        <li><a class="dropdown-item" routerLink="/settings"><i class="fa fa-cog me-2"></i>Settings</a></li>
+                        <li><a class="dropdown-item" routerLink="/profile"><i class="fa fa-user me-2"></i>{{ 'auth.profile' | translate:'Profile' }}</a></li>
+                        <li><a class="dropdown-item" routerLink="/settings"><i class="fa fa-cog me-2"></i>{{ 'auth.settings' | translate:'Settings' }}</a></li>
                         <li><hr class="dropdown-divider" /></li>
-                        <li><a class="dropdown-item text-danger" (click)="onLogout()"><i class="fa fa-sign-out-alt me-2"></i>Logout</a></li>
+                        <li><a class="dropdown-item text-danger" (click)="onLogout()"><i class="fa fa-sign-out-alt me-2"></i>{{ 'auth.logout' | translate:'Logout' }}</a></li>
                     </ul>
                 </li>
             </ul>
