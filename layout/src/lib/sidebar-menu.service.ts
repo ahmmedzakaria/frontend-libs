@@ -22,7 +22,7 @@ interface WrappedApplicationContext {
 
 const PRIVILEGE_CONTEXT_ENDPOINT: ApiEndpoint = {
     service: 'AUTH',
-    apiPath: 'auth/privilege/context',
+    apiPath: 'system/privilege/context',
     actionType: ActionTypes.AUTH,
 };
 
