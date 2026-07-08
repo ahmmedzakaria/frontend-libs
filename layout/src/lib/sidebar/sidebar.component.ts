@@ -3,11 +3,12 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NgFor, NgIf } from '@angular/common';
 import {animate, state, style, transition, trigger} from "@angular/animations";
 import {SidebarMenuItem, SidebarMenuService} from "../sidebar-menu.service";
+import { TranslatePipe } from '@nexacore/shared/i18n/translate.pipe';
 
 @Component({
     selector: 'app-sidebar',
     standalone: true,
-    imports: [NgFor, NgIf, RouterLink, RouterLinkActive],
+    imports: [NgFor, NgIf, RouterLink, RouterLinkActive, TranslatePipe],
     templateUrl: './sidebar.component.html',
     styleUrls: ['./sidebar.component.scss'],
     animations: [
@@ -72,5 +73,16 @@ export class SidebarComponent implements OnInit {
 
     isExpanded(label: string): boolean {
         return this.expandedMenus().has(label);
+    }
+
+    menuLabelKey(label: string): string {
+        const normalizedLabel = label
+            .trim()
+            .toLowerCase()
+            .replace(/&/g, 'and')
+            .replace(/[^a-z0-9]+/g, '.')
+            .replace(/^\.+|\.+$/g, '');
+
+        return normalizedLabel ? `nav.${normalizedLabel}` : 'nav.unknown';
     }
 }

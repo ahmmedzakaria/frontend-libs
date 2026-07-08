@@ -3,17 +3,17 @@
     <div class="sidebar-header d-flex align-items-center justify-content-between px-3 py-2">
         <div class="d-flex align-items-center gap-2">
             <img src="assets/logo.svg" alt="Logo" class="brand-logo" />
-            <span class="fw-bold fs-5" *ngIf="!collapsed">MyApp</span>
+            <span class="fw-bold fs-5" *ngIf="!collapsed">{{ 'app.name' | translate:'NexaCore' }}</span>
         </div>
     </div>
 
     <!-- Navigation -->
     <ul class="nav flex-column mt-3">
         <li class="px-3 py-2 small text-muted" *ngIf="loading && !collapsed">
-            Loading menu...
+            {{ 'nav.loading_menu' | translate:'Loading menu...' }}
         </li>
         <li class="px-3 py-2 small text-muted" *ngIf="!loading && menuItems.length === 0 && !collapsed">
-            No menu available
+            {{ 'nav.no_menu_available' | translate:'No menu available' }}
         </li>
         <li class="nav-item" *ngFor="let item of menuItems">
             <a
@@ -24,7 +24,7 @@
             >
                 <div class="d-flex align-items-center">
                     <i [class]="item.icon + ' me-2'"></i>
-                    <span *ngIf="!collapsed">{{ item.label }}</span>
+                    <span *ngIf="!collapsed">{{ menuLabelKey(item.label) | translate:item.label }}</span>
                 </div>
                 <i
                         *ngIf="hasChildren(item) && !collapsed"
@@ -46,7 +46,7 @@
                             routerLinkActive="active"
                             (click)="handleMenuClick(child)">
                         <span>
-                            <i [class]="(child.icon || 'fa fa-angle-right') + ' me-1'"></i> {{ child.label }}
+                            <i [class]="(child.icon || 'fa fa-angle-right') + ' me-1'"></i> {{ menuLabelKey(child.label) | translate:child.label }}
                         </span>
                         <i
                                 *ngIf="hasChildren(child) && !collapsed"
@@ -60,7 +60,7 @@
                             [@slideToggle]>
                         <li *ngFor="let grandChild of child.children">
                             <a class="nav-link" [routerLink]="grandChild.path" routerLinkActive="active">
-                                <i [class]="(grandChild.icon || 'fa fa-angle-right') + ' me-1'"></i> {{ grandChild.label }}
+                                <i [class]="(grandChild.icon || 'fa fa-angle-right') + ' me-1'"></i> {{ menuLabelKey(grandChild.label) | translate:grandChild.label }}
                             </a>
                         </li>
                     </ul>
