@@ -7,13 +7,20 @@ export interface SidebarMenuItem {
     label: string;
     icon?: string;
     path?: string;
+    menuOrder?: number;
+    subMenuOrder?: number;
     privilegeCodes?: string[];
     children?: SidebarMenuItem[];
 }
 
 export interface ApplicationContext {
+    clientCode?: string;
+    clientType?: string;
     menus: SidebarMenuItem[];
     privilegeCodes: string[];
+    enabledModules?: string[];
+    enabledSubmodules?: string[];
+    enabledFeatures?: string[];
 }
 
 interface WrappedApplicationContext {
@@ -34,7 +41,12 @@ export class SidebarMenuService {
         return this.apiService.post<ApplicationContext | WrappedApplicationContext>(PRIVILEGE_CONTEXT_ENDPOINT, {}).pipe(
             map((response: ApplicationContext | WrappedApplicationContext) => this.unwrapApplicationContext(response)),
             tap(context => {
+                localStorage.setItem('clientCode', context?.clientCode || '');
+                localStorage.setItem('clientType', context?.clientType || '');
                 localStorage.setItem('privilegeCodes', JSON.stringify(context?.privilegeCodes || []));
+                localStorage.setItem('enabledModules', JSON.stringify(context?.enabledModules || []));
+                localStorage.setItem('enabledSubmodules', JSON.stringify(context?.enabledSubmodules || []));
+                localStorage.setItem('enabledFeatures', JSON.stringify(context?.enabledFeatures || []));
                 localStorage.setItem('sidebarMenus', JSON.stringify(context?.menus || []));
             })
         );
@@ -47,8 +59,13 @@ export class SidebarMenuService {
     private unwrapApplicationContext(response: ApplicationContext | WrappedApplicationContext): ApplicationContext {
         const context = (response as WrappedApplicationContext)?.data || response as ApplicationContext;
         return {
+            clientCode: context?.clientCode || '',
+            clientType: context?.clientType || '',
             menus: context?.menus || [],
             privilegeCodes: context?.privilegeCodes || [],
+            enabledModules: context?.enabledModules || [],
+            enabledSubmodules: context?.enabledSubmodules || [],
+            enabledFeatures: context?.enabledFeatures || [],
         };
     }
 }

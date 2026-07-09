@@ -88,8 +88,7 @@ export class AuthService {
     login(username: string, password: string) {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
-        localStorage.removeItem('privilegeCodes');
-        localStorage.removeItem('sidebarMenus');
+        this.clearApplicationContextStorage();
 
         return this.apiService.post<AuthResponse | { data: AuthResponse }>(AUTHENTICATE_ENDPOINT, { username, password })
             .pipe(
@@ -102,8 +101,7 @@ export class AuthService {
                         return this.sidebarMenuService.loadApplicationContext().pipe(
                             catchError(error => {
                                 console.error('Application context load failed after login', error);
-                                localStorage.setItem('privilegeCodes', JSON.stringify([]));
-                                localStorage.setItem('sidebarMenus', JSON.stringify([]));
+                                this.clearApplicationContextStorage();
                                 return of({ menus: [], privilegeCodes: [] });
                             })
                         );
@@ -188,8 +186,7 @@ export class AuthService {
                     map(() => undefined),
                     catchError(error => {
                         console.error('Application context load failed after SSO login', error);
-                        localStorage.setItem('privilegeCodes', JSON.stringify([]));
-                        localStorage.setItem('sidebarMenus', JSON.stringify([]));
+                        this.clearApplicationContextStorage();
                         return of(undefined);
                     })
                 );
@@ -222,8 +219,7 @@ export class AuthService {
         const username = this.getCurrentUsername();
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
-        localStorage.removeItem('privilegeCodes');
-        localStorage.removeItem('sidebarMenus');
+        this.clearApplicationContextStorage();
         localStorage.removeItem('keycloakIdToken');
         if (redirectToLogin && authMode === 'SSO') {
             if (username) {
@@ -462,7 +458,16 @@ export class AuthService {
     private clearAuthStorage(): void {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
+        this.clearApplicationContextStorage();
+    }
+
+    private clearApplicationContextStorage(): void {
+        localStorage.removeItem('clientCode');
+        localStorage.removeItem('clientType');
         localStorage.removeItem('privilegeCodes');
+        localStorage.removeItem('enabledModules');
+        localStorage.removeItem('enabledSubmodules');
+        localStorage.removeItem('enabledFeatures');
         localStorage.removeItem('sidebarMenus');
     }
 

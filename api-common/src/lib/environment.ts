@@ -5,4 +5,6 @@ export const Environment = {
   backendOrigin: 'http://localhost:9100',
   loginUrl : '',
   apiBaseUrl : '/api',
+  clientCode: 'WEB',
+  apiKey: '',
 };

@@ -14,6 +14,8 @@ export class ApiService {
     private baseUrl = Environment.apiBaseUrl;
     private loginUrl = Environment.loginUrl;
     private backendOrigin = Environment.backendOrigin;
+    private clientCode = Environment.clientCode;
+    private apiKey = Environment.apiKey;
 
     public getToken() {
         return localStorage.getItem('token');
@@ -30,6 +32,14 @@ export class ApiService {
 
         if (token && !headers.has('Authorization')) {
             headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        if (this.clientCode && this.apiKey && !headers.has('X-Client-Code')) {
+            headers = headers.set('X-Client-Code', this.clientCode);
+        }
+
+        if (this.apiKey && !headers.has('X-API-Key')) {
+            headers = headers.set('X-API-Key', this.apiKey);
         }
 
         if (!isMultiPart && !headers.has('Content-Type')) {
