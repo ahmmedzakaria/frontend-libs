@@ -1,0 +1,14 @@
+.breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 1rem;
+  color: var(--nc-text-muted);
+  background: var(--nc-surface-bg);
+  border-bottom: 1px solid var(--nc-border);
+
+  a {
+    color: var(--nc-primary);
+    text-decoration: none;
+  }
+}

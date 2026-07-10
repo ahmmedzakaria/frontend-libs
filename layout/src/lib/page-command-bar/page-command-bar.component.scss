@@ -1,0 +1,23 @@
+.page-command-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0.5rem 1rem;
+  background: var(--nc-surface-bg);
+  border-bottom: 1px solid var(--nc-border);
+
+  h1 {
+    margin: 0;
+    color: var(--nc-text);
+    font-size: 1.1rem;
+    font-weight: 650;
+    line-height: 1.25;
+  }
+}
+
+.page-command-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

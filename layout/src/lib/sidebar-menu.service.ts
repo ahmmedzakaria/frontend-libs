@@ -2,30 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { ActionTypes, ApiEndpoint, ApiService } from '@nexacore/api-common';
-
-export interface SidebarMenuItem {
-    label: string;
-    icon?: string;
-    path?: string;
-    menuOrder?: number;
-    subMenuOrder?: number;
-    privilegeCodes?: string[];
-    children?: SidebarMenuItem[];
-}
-
-export interface ApplicationContext {
-    clientCode?: string;
-    clientType?: string;
-    menus: SidebarMenuItem[];
-    privilegeCodes: string[];
-    enabledModules?: string[];
-    enabledSubmodules?: string[];
-    enabledFeatures?: string[];
-}
-
-interface WrappedApplicationContext {
-    data?: ApplicationContext;
-}
+import { ApplicationContext, SidebarMenuItem, WrappedApplicationContext } from './application-context.model';
+import { LayoutService } from './layout.service';
 
 const PRIVILEGE_CONTEXT_ENDPOINT: ApiEndpoint = {
     service: 'AUTH',
@@ -35,7 +13,10 @@ const PRIVILEGE_CONTEXT_ENDPOINT: ApiEndpoint = {
 
 @Injectable({ providedIn: 'root' })
 export class SidebarMenuService {
-    constructor(private apiService: ApiService) {}
+    constructor(
+        private apiService: ApiService,
+        private layoutService: LayoutService
+    ) {}
 
     loadApplicationContext(): Observable<ApplicationContext> {
         return this.apiService.post<ApplicationContext | WrappedApplicationContext>(PRIVILEGE_CONTEXT_ENDPOINT, {}).pipe(
@@ -48,6 +29,7 @@ export class SidebarMenuService {
                 localStorage.setItem('enabledSubmodules', JSON.stringify(context?.enabledSubmodules || []));
                 localStorage.setItem('enabledFeatures', JSON.stringify(context?.enabledFeatures || []));
                 localStorage.setItem('sidebarMenus', JSON.stringify(context?.menus || []));
+                this.layoutService.setApplicationContext(context);
             })
         );
     }
@@ -61,6 +43,14 @@ export class SidebarMenuService {
         return {
             clientCode: context?.clientCode || '',
             clientType: context?.clientType || '',
+            layout: context?.layout || {},
+            branding: context?.branding || {},
+            theme: context?.theme || {},
+            navigation: context?.navigation || {},
+            header: context?.header || {},
+            statusBar: context?.statusBar || {},
+            tenant: context?.tenant || {},
+            localization: context?.localization || {},
             menus: context?.menus || [],
             privilegeCodes: context?.privilegeCodes || [],
             enabledModules: context?.enabledModules || [],

@@ -2,5 +2,9 @@ export interface LayoutConfig {
     showSidebar: boolean;
     showTopbar: boolean;
     collapsed: boolean;
-    theme: 'light' | 'dark';
+    showBreadcrumb?: boolean;
+    showCommandBar?: boolean;
+    showStatusBar?: boolean;
+    allowNavigationViewToggle?: boolean;
+    theme?: 'light' | 'dark' | 'blue-enterprise' | 'navy-banking' | 'green-compliance' | 'purple-corporate' | 'gray-professional';
 }

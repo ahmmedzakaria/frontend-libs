@@ -1,10 +1,13 @@
 <nav class="navbar navbar-expand-lg shadow-sm topbar" [class.navbar-dark]="theme === 'dark'" [class.navbar-light]="theme === 'light'">
     <div class="container-fluid px-3">
-
-        <!-- Sidebar Toggle -->
-        <button class="btn btn-link d-lg-none me-2" (click)="toggleSidebar()" aria-label="Toggle Sidebar">
+        <button class="btn btn-link me-2 nav-icon-button" (click)="toggleSidebar()" aria-label="Toggle navigation view">
             <i class="fa fa-bars fs-5"></i>
         </button>
+
+        <a class="navbar-brand d-flex align-items-center gap-2" routerLink="/dashboard">
+            <img [src]="layoutService.applicationContext()?.branding?.logoUrl || 'assets/logo.svg'" alt="Logo" class="topbar-logo" />
+            <span>{{ layoutService.applicationContext()?.branding?.applicationName || ('app.name' | translate:'NexaCore') }}</span>
+        </a>
 
         <button
                 class="navbar-toggler"
@@ -14,56 +17,18 @@
                 aria-controls="navbarNav"
                 aria-label="Toggle navigation"
         >
-            <span class="navbar-toggler-icon"></span>else
+            <span class="navbar-toggler-icon"></span>
         </button>
-        <!-- Brand -->
-        
-        <!-- Navbar Items -->
+
         <div class="collapse navbar-collapse" [class.show]="isMenuOpen" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center gap-2">
-                <li class="nav-item">
-                    <select
-                            class="form-select form-select-sm language-select"
-                            [value]="selectedLocale"
-                            (change)="changeLanguage($any($event.target).value)"
-                            aria-label="Language"
-                    >
-                        <option value="en">{{ 'language.english' | translate:'English' }}</option>
-                        <option value="bn">{{ 'language.bangla' | translate:'Bangla' }}</option>
-                    </select>
-                </li>
-
-                <!-- Theme Toggle -->
-                <li class="nav-item">
-                    <button class="btn btn-link theme-toggle" (click)="toggleTheme()" [attr.aria-label]="'Switch to ' + (theme === 'dark' ? 'light' : 'dark') + ' mode'">
-                        <i [class]="theme === 'dark' ? 'fa fa-sun text-warning' : 'fa fa-moon text-secondary'"></i>
-                    </button>
-                </li>
-
-                <!-- Profile Dropdown -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img
-                                *ngIf="user?.photoUrl; else defaultAvatar"
-                                [src]="user.photoUrl"
-                                class="rounded-circle me-2"
-                                width="32"
-                                height="32"
-                                alt="User Avatar"
-                        />
-                        <ng-template #defaultAvatar>
-                            <i class="fa fa-user-circle fa-lg me-2"></i>
-                        </ng-template>
-                        <span class="d-none d-md-inline">{{ user?.sub || 'Guest' }}</span>
-                    </a>
-
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                        <li><a class="dropdown-item" routerLink="/profile"><i class="fa fa-user me-2"></i>{{ 'auth.profile' | translate:'Profile' }}</a></li>
-                        <li><a class="dropdown-item" routerLink="/settings"><i class="fa fa-cog me-2"></i>{{ 'auth.settings' | translate:'Settings' }}</a></li>
-                        <li><hr class="dropdown-divider" /></li>
-                        <li><a class="dropdown-item text-danger" (click)="onLogout()"><i class="fa fa-sign-out-alt me-2"></i>{{ 'auth.logout' | translate:'Logout' }}</a></li>
-                    </ul>
-                </li>
+                <app-top-navigation-renderer
+                        [items]="topNavigationItems()"
+                        [user]="user"
+                        [theme]="theme"
+                        (logout)="onLogout()"
+                        (themeToggle)="toggleTheme()"
+                ></app-top-navigation-renderer>
             </ul>
         </div>
     </div>

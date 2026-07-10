@@ -1,25 +1,36 @@
 <div
         class="app-layout"
-        [class.dark-theme]="layoutService.theme() === 'dark'"
-        [class.collapsed]="layoutService.layout().collapsed"
+        [attr.data-nc-theme]="layoutService.theme()"
+        [attr.data-bs-theme]="layoutService.bootstrapTheme()"
+        [class.navigation-icon-view]="layoutService.navigationView() === 'icon'"
+        [class.navigation-detail-view]="layoutService.navigationView() === 'detail'"
 >
-    <!-- Sidebar -->
-    <app-sidebar
-            *ngIf="layoutService.layout().showSidebar"
-            [collapsed]="layoutService.layout().collapsed"
-    ></app-sidebar>
+    <app-topbar
+            *ngIf="layoutService.layout().showTopbar"
+            [theme]="layoutService.theme()"
+            [user]="authService.currentUser$ | async"
+            (logout)="onLogout()"
+    ></app-topbar>
 
-    <!-- Main Area -->
-    <div class="app-main">
-        <app-topbar
-                *ngIf="layoutService.layout().showTopbar"
-                [theme]="layoutService.theme()"
-                [user]="authService.currentUser$ | async"
-                (logout)="onLogout()"
-        ></app-topbar>
+    <div class="app-body">
+        <app-sidebar
+                *ngIf="layoutService.layout().showSidebar"
+        ></app-sidebar>
 
-        <main class="app-content container-fluid p-3 ms-4">
-            <router-outlet></router-outlet>
-        </main>
+        <div class="app-main">
+            <app-breadcrumb-bar *ngIf="layoutService.layout().showBreadcrumb"></app-breadcrumb-bar>
+
+            <app-page-command-bar *ngIf="layoutService.layout().showCommandBar"></app-page-command-bar>
+
+            <main class="app-content">
+                <router-outlet></router-outlet>
+            </main>
+
+            <app-status-bar
+                    *ngIf="layoutService.layout().showStatusBar"
+                    [context]="layoutService.statusBarContext()"
+                    [user]="authService.currentUser$ | async"
+            ></app-status-bar>
+        </div>
     </div>
 </div>

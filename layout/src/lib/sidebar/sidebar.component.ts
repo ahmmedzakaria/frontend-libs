@@ -1,41 +1,37 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NgFor, NgIf } from '@angular/common';
-import {animate, state, style, transition, trigger} from "@angular/animations";
-import {SidebarMenuItem, SidebarMenuService} from "../sidebar-menu.service";
+import { SidebarMenuService } from '../sidebar-menu.service';
 import { TranslatePipe } from '@nexacore/shared/i18n/translate.pipe';
+import { SidebarMenuItem } from '../application-context.model';
+import { LayoutService } from '../layout.service';
+import { NavigationSubmenuPanelComponent } from '../navigation-submenu-panel/navigation-submenu-panel.component';
+import { NavigationViewToggleComponent } from '../navigation-view-toggle/navigation-view-toggle.component';
 
 @Component({
     selector: 'app-sidebar',
     standalone: true,
-    imports: [NgFor, NgIf, RouterLink, RouterLinkActive, TranslatePipe],
+    imports: [
+        NgFor,
+        NgIf,
+        RouterLink,
+        RouterLinkActive,
+        TranslatePipe,
+        NavigationSubmenuPanelComponent,
+        NavigationViewToggleComponent
+    ],
     templateUrl: './sidebar.component.html',
-    styleUrls: ['./sidebar.component.scss'],
-    animations: [
-        trigger('slideToggle', [
-            transition(':enter', [
-                style({ height: 0, opacity: 0, overflow: 'hidden' }),
-                animate('250ms ease-out', style({ height: '*', opacity: 1 }))
-            ]),
-            transition(':leave', [
-                style({ height: '*', opacity: 1, overflow: 'hidden' }),
-                animate('250ms ease-in', style({ height: 0, opacity: 0 }))
-            ])
-        ]),
-        trigger('rotateArrow', [
-            state('collapsed', style({ transform: 'rotate(0deg)' })),
-            state('expanded', style({ transform: 'rotate(90deg)' })),
-            transition('collapsed <=> expanded', animate('200ms ease'))
-        ])
-    ]
+    styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent implements OnInit {
-    constructor(private sidebarMenuService: SidebarMenuService) {}
+    constructor(
+        private sidebarMenuService: SidebarMenuService,
+        public layoutService: LayoutService,
+        private router: Router
+    ) {}
 
-    @Input() collapsed = false;
-
-    expandedMenus = signal<Set<string>>(new Set());
     menuItems: SidebarMenuItem[] = [];
+    selectedItem?: SidebarMenuItem | null;
     loading = true;
 
     ngOnInit(): void {
@@ -51,28 +47,24 @@ export class SidebarComponent implements OnInit {
         });
     }
 
-    hasChildren(item: SidebarMenuItem): boolean {
-        return !!item.children?.length;
-    }
-
-    handleMenuClick(item: SidebarMenuItem): void {
-        if (this.hasChildren(item)) {
-            this.toggleSubMenu(item.label);
+    selectItem(item: SidebarMenuItem): void {
+        if (item.disabled) {
+            return;
+        }
+        this.selectedItem = item.children?.length ? item : null;
+        if (item.path && !item.children?.length) {
+            this.router.navigate([item.path]);
         }
     }
 
-    toggleSubMenu(label: string) {
-        const expandedMenus = new Set(this.expandedMenus());
-        if (expandedMenus.has(label)) {
-            expandedMenus.delete(label);
-        } else {
-            expandedMenus.add(label);
+    openSubmenu(item: SidebarMenuItem): void {
+        if (item.children?.length) {
+            this.selectedItem = item;
         }
-        this.expandedMenus.set(expandedMenus);
     }
 
-    isExpanded(label: string): boolean {
-        return this.expandedMenus().has(label);
+    closeSubmenu(): void {
+        this.selectedItem = null;
     }
 
     menuLabelKey(label: string): string {

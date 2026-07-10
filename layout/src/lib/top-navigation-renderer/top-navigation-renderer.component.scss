@@ -1,0 +1,34 @@
+.nav-icon-button {
+  color: var(--nc-header-text);
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0.35rem 0.55rem;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    color: var(--nc-primary);
+    background: var(--nc-sidebar-hover-bg);
+  }
+}
+
+.language-select {
+  width: auto;
+  min-width: 104px;
+}
+
+.tenant-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--nc-header-text);
+  min-height: 36px;
+  padding: 0 0.35rem;
+  white-space: nowrap;
+}
+
+.dropdown-menu {
+  border-radius: var(--nc-border-radius);
+  border: 1px solid var(--nc-border);
+  min-width: 200px;
+}

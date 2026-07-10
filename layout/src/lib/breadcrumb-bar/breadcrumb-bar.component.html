@@ -1,0 +1,16 @@
+<nav class="breadcrumb-bar" aria-label="breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+            <a routerLink="/dashboard">Home</a>
+        </li>
+        <li
+                *ngFor="let item of breadcrumbs"
+                class="breadcrumb-item"
+                [class.active]="item === breadcrumbs[breadcrumbs.length - 1]"
+                [attr.aria-current]="item === breadcrumbs[breadcrumbs.length - 1] ? 'page' : null"
+        >
+            <a *ngIf="item !== breadcrumbs[breadcrumbs.length - 1]" [routerLink]="item.url">{{ item.label | titlecase }}</a>
+            <span *ngIf="item === breadcrumbs[breadcrumbs.length - 1]">{{ item.label | titlecase }}</span>
+        </li>
+    </ol>
+</nav>

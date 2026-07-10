@@ -1,0 +1,10 @@
+<button
+        class="navigation-view-toggle"
+        type="button"
+        (click)="toggle()"
+        [attr.aria-label]="layoutService.navigationView() === 'icon' ? 'Show navigation details' : 'Show icons only'"
+        [title]="layoutService.navigationView() === 'icon' ? 'Show navigation details' : 'Show icons only'"
+>
+    <i [class]="layoutService.navigationView() === 'icon' ? 'fa fa-angles-right' : 'fa fa-angles-left'"></i>
+    <span *ngIf="!compact">Navigation</span>
+</button>

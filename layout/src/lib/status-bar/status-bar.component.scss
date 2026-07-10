@@ -1,0 +1,23 @@
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: var(--nc-statusbar-height);
+  padding: 0 1rem;
+  color: var(--nc-text-muted);
+  background: var(--nc-surface-bg);
+  border-top: 1px solid var(--nc-border);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.status-bar__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.status-bar__label {
+  font-weight: 600;
+}

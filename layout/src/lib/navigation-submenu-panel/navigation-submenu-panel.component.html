@@ -1,0 +1,33 @@
+<aside class="navigation-submenu-panel" *ngIf="item && item.children?.length">
+    <div class="navigation-submenu-panel__title">
+        <i *ngIf="item.icon" [class]="item.icon"></i>
+        <span>{{ menuLabelKey(item.label) | translate:item.label }}</span>
+    </div>
+
+    <nav class="navigation-submenu-panel__list">
+        <ng-container *ngFor="let child of item.children">
+            <a
+                    class="navigation-submenu-panel__link"
+                    [routerLink]="child.path || null"
+                    routerLinkActive="active"
+                    [class.disabled]="child.disabled"
+            >
+                <i [class]="(child.icon || 'fa fa-angle-right')"></i>
+                <span>{{ menuLabelKey(child.label) | translate:child.label }}</span>
+            </a>
+
+            <div class="navigation-submenu-panel__nested" *ngIf="child.children?.length">
+                <a
+                        *ngFor="let grandChild of child.children"
+                        class="navigation-submenu-panel__link navigation-submenu-panel__link--nested"
+                        [routerLink]="grandChild.path || null"
+                        routerLinkActive="active"
+                        [class.disabled]="grandChild.disabled"
+                >
+                    <i [class]="(grandChild.icon || 'fa fa-angle-right')"></i>
+                    <span>{{ menuLabelKey(grandChild.label) | translate:grandChild.label }}</span>
+                </a>
+            </div>
+        </ng-container>
+    </nav>
+</aside>

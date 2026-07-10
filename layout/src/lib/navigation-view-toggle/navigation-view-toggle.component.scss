@@ -1,0 +1,18 @@
+.navigation-view-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-height: 36px;
+  color: var(--nc-sidebar-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--nc-border-radius);
+
+  &:hover,
+  &:focus {
+    color: var(--nc-primary);
+    background: var(--nc-sidebar-hover-bg);
+  }
+}

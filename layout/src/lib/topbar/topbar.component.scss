@@ -1,62 +1,23 @@
 .topbar {
-  background-color: var(--bs-body-bg);
-  border-bottom: 1px solid var(--bs-border-color);
-  transition: all 0.3s ease;
+  min-height: var(--nc-header-height);
+  color: var(--nc-header-text);
+  background: var(--nc-header-bg);
+  border-bottom: 1px solid var(--nc-header-border);
+  transition: background-color 0.2s ease, color 0.2s ease;
 
   .navbar-brand {
-    color: var(--bs-body-color);
-    font-size: 1.25rem;
+    color: var(--nc-header-text);
+    font-size: 1rem;
+    font-weight: 650;
     &:hover {
-      color: var(--bs-primary);
+      color: var(--nc-header-text);
     }
   }
 
   .btn-link {
-    color: var(--bs-body-color);
+    color: var(--nc-header-text);
     &:hover {
-      color: var(--bs-primary);
-    }
-  }
-
-  .theme-toggle {
-    i {
-      font-size: 1.2rem;
-      transition: transform 0.3s ease;
-    }
-    &:hover i {
-      transform: rotate(20deg);
-    }
-  }
-
-  .language-select {
-    width: auto;
-    min-width: 104px;
-  }
-
-  .dropdown-menu {
-    border-radius: 0.75rem;
-    border: 1px solid var(--bs-border-color);
-    min-width: 200px;
-
-    .dropdown-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.95rem;
-      transition: background-color 0.2s ease;
-
-      &:hover {
-        background-color: var(--bs-light-bg-subtle);
-      }
-
-      i {
-        width: 18px;
-        text-align: center;
-      }
-    }
-
-    .text-danger:hover {
-      background-color: rgba(var(--bs-danger-rgb), 0.1);
+      color: var(--nc-primary);
     }
   }
 
@@ -70,4 +31,16 @@
   img {
     object-fit: cover;
   }
+}
+
+.topbar-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.nav-icon-button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0.35rem 0.55rem;
+  text-decoration: none;
 }

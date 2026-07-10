@@ -1,0 +1,6 @@
+<footer class="status-bar">
+    <span class="status-bar__item" *ngFor="let item of items">
+        <span class="status-bar__label">{{ item.fallbackLabel || item.code }}:</span>
+        <span class="status-bar__value">{{ item.value }}</span>
+    </span>
+</footer>

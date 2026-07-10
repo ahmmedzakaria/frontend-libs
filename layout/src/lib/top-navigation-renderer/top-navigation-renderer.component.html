@@ -1,0 +1,93 @@
+<ng-container *ngFor="let item of visibleItems">
+    <li class="nav-item" [ngSwitch]="item.type">
+        <ng-container *ngSwitchCase="'Search'">
+            <button class="btn btn-link nav-icon-button" type="button" [disabled]="item.disabled" [attr.aria-label]="fallbackLabel(item)">
+                <i [class]="item.icon || 'fa fa-search'"></i>
+            </button>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'Notification'">
+            <button class="btn btn-link nav-icon-button" type="button" [disabled]="item.disabled" [attr.aria-label]="fallbackLabel(item)">
+                <i [class]="item.icon || 'fa fa-bell'"></i>
+            </button>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'Help'">
+            <a class="btn btn-link nav-icon-button" [routerLink]="item.route || '/help'" [class.disabled]="item.disabled" [attr.aria-label]="fallbackLabel(item)">
+                <i [class]="item.icon || 'fa fa-circle-question'"></i>
+            </a>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'Language'">
+            <select
+                    class="form-select form-select-sm language-select"
+                    [value]="selectedLocale"
+                    [disabled]="item.disabled"
+                    (change)="changeLanguage($any($event.target).value)"
+                    [attr.aria-label]="fallbackLabel(item)"
+            >
+                <option value="en">{{ 'language.english' | translate:'English' }}</option>
+                <option value="bn">{{ 'language.bangla' | translate:'Bangla' }}</option>
+            </select>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'Tenant'">
+            <span class="tenant-label">
+                <i [class]="item.icon || 'fa fa-building'"></i>
+                <span class="d-none d-lg-inline">{{ itemLabel(item) | translate:fallbackLabel(item) }}</span>
+            </span>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'Settings'">
+            <a class="btn btn-link nav-icon-button" [routerLink]="item.route || '/settings'" [class.disabled]="item.disabled" [attr.aria-label]="fallbackLabel(item)">
+                <i [class]="item.icon || 'fa fa-gear'"></i>
+            </a>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'Profile'">
+            <div class="dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img
+                            *ngIf="user?.photoUrl; else defaultAvatar"
+                            [src]="user.photoUrl"
+                            class="rounded-circle me-2"
+                            width="32"
+                            height="32"
+                            alt="User Avatar"
+                    />
+                    <ng-template #defaultAvatar>
+                        <i class="fa fa-user-circle fa-lg me-2"></i>
+                    </ng-template>
+                    <span class="d-none d-md-inline">{{ user?.sub || user?.username || 'Guest' }}</span>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li><a class="dropdown-item" routerLink="/profile"><i class="fa fa-user me-2"></i>{{ 'auth.profile' | translate:'Profile' }}</a></li>
+                    <li><a class="dropdown-item" routerLink="/settings"><i class="fa fa-cog me-2"></i>{{ 'auth.settings' | translate:'Settings' }}</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><button class="dropdown-item text-danger" type="button" (click)="logout.emit()"><i class="fa fa-sign-out-alt me-2"></i>{{ 'auth.logout' | translate:'Logout' }}</button></li>
+                </ul>
+            </div>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'Action'">
+            <button class="btn btn-link nav-icon-button" type="button" [disabled]="item.disabled" (click)="handleAction(item)" [attr.aria-label]="fallbackLabel(item)">
+                <i *ngIf="item.icon" [class]="item.icon"></i>
+                <span *ngIf="!item.icon">{{ itemLabel(item) | translate:fallbackLabel(item) }}</span>
+            </button>
+        </ng-container>
+
+        <ng-container *ngSwitchDefault>
+            <a *ngIf="item.route; else actionItem" class="nav-link" [routerLink]="item.route" [class.disabled]="item.disabled">
+                <i *ngIf="item.icon" [class]="item.icon + ' me-1'"></i>
+                {{ itemLabel(item) | translate:fallbackLabel(item) }}
+            </a>
+            <ng-template #actionItem>
+                <button class="btn btn-link nav-icon-button" type="button" [disabled]="item.disabled" (click)="handleAction(item)" [attr.aria-label]="fallbackLabel(item)">
+                    <i *ngIf="item.icon" [class]="item.icon"></i>
+                    <span *ngIf="!item.icon">{{ itemLabel(item) | translate:fallbackLabel(item) }}</span>
+                </button>
+            </ng-template>
+        </ng-container>
+    </li>
+</ng-container>
