@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, switchMap, of, throwError, from, Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import {ActionTypes, ApiEndpoint, ApiService, AuthConfig, AuthResponse, LoginStatusResponse} from "@nexacore/api-common";
+import {ActionTypes, ApiEndpoint, ApiService, AuthConfig, AuthResponse, LoginMethod, LoginStatusResponse} from "@nexacore/api-common";
 import {jwtDecode} from "jwt-decode";
 import {LayoutService, SidebarMenuService} from "@nexacore/layout";
 import {Router} from "@angular/router";
@@ -55,6 +55,7 @@ const LOGIN_STATUS_ENDPOINT: ApiEndpoint = {
 const AUTO_SSO_SUPPRESS_UNTIL_KEY = 'auto_sso_suppress_until';
 const AUTO_SSO_SUPPRESS_MS = 120000;
 const LAST_LOGOUT_USERNAME_KEY = 'last_logout_username';
+const LOGIN_METHOD_KEY = 'loginMethod';
 
 interface KeycloakTokenResponse {
     access_token: string;
@@ -97,6 +98,7 @@ export class AuthService {
                     if (res?.accessToken) {
                         localStorage.setItem('token', res.accessToken);
                         localStorage.setItem('refreshToken', res.refreshToken || '');
+                        localStorage.setItem(LOGIN_METHOD_KEY, 'PASSWORD');
                         this.decodeAndSetUser(res.accessToken);
                         return this.sidebarMenuService.loadApplicationContext().pipe(
                             catchError(error => {
@@ -117,7 +119,6 @@ export class AuthService {
                 map(response => this.unwrapAuthConfig(response)),
                 map(config => {
                     const normalizedConfig = this.normalizeAuthConfig(config);
-                    localStorage.setItem('authMode', normalizedConfig.authMode);
                     localStorage.setItem('authConfig', JSON.stringify(normalizedConfig));
                     return normalizedConfig;
                 })
@@ -179,6 +180,7 @@ export class AuthService {
                 localStorage.setItem('token', authResponse.accessToken);
                 localStorage.setItem('refreshToken', authResponse.refreshToken || '');
                 localStorage.setItem('keycloakIdToken', tokenResponse.id_token || '');
+                localStorage.setItem(LOGIN_METHOD_KEY, 'SSO');
                 this.decodeAndSetUser(authResponse.accessToken);
                 this.clearSsoSessionStorage();
 
@@ -195,24 +197,24 @@ export class AuthService {
     }
 
     logout(redirectToLogin: boolean = true, notifyServer: boolean = true) {
-        const authMode = localStorage.getItem('authMode');
+        const loginMethod = localStorage.getItem(LOGIN_METHOD_KEY);
         const authConfig = this.getStoredAuthConfig();
         const keycloakIdToken = localStorage.getItem('keycloakIdToken');
 
         if (notifyServer && this.getToken()) {
             this.apiService.post<void>(LOGOUT_ENDPOINT, {}).subscribe({
-                next: () => this.completeLogout(redirectToLogin, authMode, authConfig, keycloakIdToken),
-                error: () => this.completeLogout(redirectToLogin, authMode, authConfig, keycloakIdToken)
+                next: () => this.completeLogout(redirectToLogin, loginMethod, authConfig, keycloakIdToken),
+                error: () => this.completeLogout(redirectToLogin, loginMethod, authConfig, keycloakIdToken)
             });
             return;
         }
 
-        this.completeLogout(redirectToLogin, authMode, authConfig, keycloakIdToken);
+        this.completeLogout(redirectToLogin, loginMethod, authConfig, keycloakIdToken);
     }
 
     private completeLogout(
         redirectToLogin: boolean,
-        authMode: string | null,
+        loginMethod: string | null,
         authConfig: AuthConfig | null,
         keycloakIdToken: string | null
     ) {
@@ -221,7 +223,8 @@ export class AuthService {
         localStorage.removeItem('refreshToken');
         this.clearApplicationContextStorage();
         localStorage.removeItem('keycloakIdToken');
-        if (redirectToLogin && authMode === 'SSO') {
+        localStorage.removeItem(LOGIN_METHOD_KEY);
+        if (redirectToLogin && loginMethod === 'SSO') {
             if (username) {
                 sessionStorage.setItem(LAST_LOGOUT_USERNAME_KEY, username);
             }
@@ -235,7 +238,7 @@ export class AuthService {
         this.currentUserSubject.next(null);
         this.layoutService.setPublicLayout();
 
-        if (redirectToLogin && authMode === 'SSO' && authConfig?.issuerUri) {
+        if (redirectToLogin && loginMethod === 'SSO' && authConfig?.issuerUri) {
             const logoutUrl = new URL(`${authConfig.issuerUri}/protocol/openid-connect/logout`);
             logoutUrl.searchParams.set('post_logout_redirect_uri', `${window.location.origin}/login`);
             if (authConfig.clientId) {
@@ -297,6 +300,14 @@ export class AuthService {
         }
 
         return true;
+    }
+
+    isLoginMethodEnabled(config: AuthConfig | null | undefined, method: LoginMethod): boolean {
+        return !!config?.enabledLoginMethods?.includes(method);
+    }
+
+    isSsoOnly(config: AuthConfig | null | undefined): boolean {
+        return this.isLoginMethodEnabled(config, 'SSO') && !this.isLoginMethodEnabled(config, 'PASSWORD');
     }
 
     consumePostLoginUrl(): string {
@@ -382,6 +393,9 @@ export class AuthService {
     private normalizeAuthConfig(config: AuthConfig): AuthConfig {
         return {
             ...config,
+            enabledLoginMethods: config.enabledLoginMethods || [],
+            enabledRegistrationCredentialModels: config.enabledRegistrationCredentialModels || [],
+            loginIdentifierTypes: config.loginIdentifierTypes || [],
             clientId: this.resolveFrontendClientId(config),
             redirectUri: `${window.location.origin}/sso/callback`
         };
@@ -396,7 +410,7 @@ export class AuthService {
     }
 
     private async redirectToKeycloak(config: AuthConfig, forceLoginPrompt: boolean = false): Promise<void> {
-        if (config.authMode !== 'SSO' || !config.issuerUri || !config.clientId || !config.redirectUri) {
+        if (!this.isLoginMethodEnabled(config, 'SSO') || !config.issuerUri || !config.clientId || !config.redirectUri) {
             throw new Error('SSO is not configured');
         }
 

@@ -13,11 +13,11 @@ export const authGuard: CanActivateFn = (_route, state) => {
 
     return authService.loadAuthConfig().pipe(
         switchMap(config => {
-            if (config.authMode === 'SSO' && authService.isAutoSsoSuppressed()) {
+            if (authService.isSsoOnly(config) && authService.isAutoSsoSuppressed()) {
                 return of(router.createUrlTree(['/login']));
             }
 
-            if (config.authMode === 'SSO') {
+            if (authService.isSsoOnly(config)) {
                 return authService.loginWithSso(state.url).pipe(map(() => false));
             }
 

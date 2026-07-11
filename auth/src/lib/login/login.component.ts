@@ -19,7 +19,8 @@ import {NgIf} from "@angular/common";
 export class LoginComponent implements OnInit {
     form: FormGroup;
     errorMessage = '';
-    authMode: 'LOCAL' | 'SSO' = 'LOCAL';
+    passwordLoginEnabled = false;
+    ssoLoginEnabled = false;
     loadingConfig = true;
     ssoLoading = false;
 
@@ -38,7 +39,8 @@ export class LoginComponent implements OnInit {
     ngOnInit(): void {
         this.authService.loadAuthConfig().subscribe({
             next: config => {
-                this.authMode = config.authMode;
+                this.passwordLoginEnabled = this.authService.isLoginMethodEnabled(config, 'PASSWORD');
+                this.ssoLoginEnabled = this.authService.isLoginMethodEnabled(config, 'SSO');
                 this.loadingConfig = false;
             },
             error: err => {
@@ -50,7 +52,7 @@ export class LoginComponent implements OnInit {
 
     login() {
         if (this.form.invalid) return;
-        if (this.authMode === 'SSO') {
+        if (!this.passwordLoginEnabled) {
             this.errorMessage = 'LOCAL_LOGIN_DISABLED';
             return;
         }

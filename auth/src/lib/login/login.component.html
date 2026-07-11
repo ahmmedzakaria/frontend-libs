@@ -11,14 +11,14 @@
             Loading...
         </div>
 
-        <div *ngIf="!loadingConfig && authMode === 'SSO'" class="d-grid mt-4">
+        <div *ngIf="!loadingConfig && ssoLoginEnabled" class="d-grid mt-4">
             <button type="button" class="btn btn-primary" (click)="loginWithSso()" [disabled]="ssoLoading">
                 <i class="fa-solid fa-right-to-bracket me-2"></i>
                 {{ ssoLoading ? 'Redirecting...' : 'Login with SSO' }}
             </button>
         </div>
 
-        <form *ngIf="!loadingConfig && authMode === 'LOCAL'" [formGroup]="form" (ngSubmit)="login()">
+        <form *ngIf="!loadingConfig && passwordLoginEnabled" [formGroup]="form" (ngSubmit)="login()">
             <!-- Username -->
             <div class="mb-3">
                 <label for="username" class="form-label fw-semibold">Username</label>
@@ -55,6 +55,10 @@
                 </button>
             </div>
         </form>
+
+        <div *ngIf="!loadingConfig && !passwordLoginEnabled && !ssoLoginEnabled" class="alert alert-warning py-2 small mt-3">
+            No login method is enabled.
+        </div>
 
         <div *ngIf="errorMessage" class="alert alert-danger py-2 small mt-3">
             {{ errorMessage }}
